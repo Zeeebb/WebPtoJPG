@@ -625,6 +625,11 @@ select option{background:var(--s2)}
       <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       Filigrane
     </div>
+    <div class="nav-section-label">Création</div>
+    <div class="nav-item" onclick="openTool('pixeleditor')" id="nav-pixeleditor">
+      <svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/><line x1="6" y1="6" x2="6" y2="6" stroke-width="3"/></svg>
+      Éditeur Pixel Art
+    </div>
     <div class="nav-section-label">Analyse</div>
     <div class="nav-item" onclick="openTool('palette')" id="nav-palette">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
@@ -965,6 +970,11 @@ select option{background:var(--s2)}
     <button class="btn-secondary" id="px-dl-btn" disabled style="width:100%;justify-content:center">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Télécharger
+    </button>
+    <div style="height:6px"></div>
+    <button class="btn-secondary" id="px-send-editor-btn" disabled style="width:100%;justify-content:center;background:var(--accent-bg);border-color:var(--accent);color:var(--accent)">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg>
+      Ouvrir dans l'éditeur
     </button>
   </div>
 
@@ -1762,6 +1772,224 @@ select option{background:var(--s2)}
 </div><!-- /app -->
 
   <!-- ══════════════════════════════════════
+       TOOL: ÉDITEUR PIXEL ART
+  ══════════════════════════════════════ -->
+  <div class="tool-view" id="tool-pixeleditor" style="flex-direction:column;overflow:hidden">
+
+  <!-- Top toolbar -->
+  <div id="pe-toolbar" style="display:flex;align-items:center;gap:0;background:var(--s2);border-bottom:var(--border-main);flex-shrink:0;height:44px;padding:0 8px;overflow-x:auto">
+
+    <!-- Canvas size -->
+    <div style="display:flex;align-items:center;gap:4px;padding-right:10px;border-right:2px solid var(--border);margin-right:8px">
+      <span style="font-size:9px;font-weight:700;color:var(--text3);font-family:var(--font-display);text-transform:uppercase;white-space:nowrap">Canvas</span>
+      <select id="pe-size-preset" style="padding:3px 6px;border-radius:4px;border:var(--border-line);background:var(--s1);color:var(--text);font-size:10px;font-weight:700;font-family:var(--font-display);outline:none;box-shadow:2px 2px 0 var(--border)">
+        <option value="16x16">16×16</option>
+        <option value="32x32">32×32</option>
+        <option value="48x48">48×48</option>
+        <option value="64x64" selected>64×64</option>
+        <option value="128x128">128×128</option>
+        <option value="160x144">160×144 (GBA)</option>
+        <option value="320x180">320×180 (16:9)</option>
+        <option value="custom">Perso…</option>
+      </select>
+      <input type="number" id="pe-cw" value="64" min="1" max="512" style="width:44px;padding:3px 5px;border-radius:4px;border:var(--border-line);background:var(--s1);color:var(--text);font-size:10px;font-weight:700;outline:none;display:none">
+      <span id="pe-custom-x" style="display:none;font-size:10px;font-weight:700">×</span>
+      <input type="number" id="pe-ch" value="64" min="1" max="512" style="width:44px;padding:3px 5px;border-radius:4px;border:var(--border-line);background:var(--s1);color:var(--text);font-size:10px;font-weight:700;outline:none;display:none">
+      <button id="pe-apply-size" style="display:none;padding:3px 8px;border-radius:4px;border:var(--border-main);background:var(--accent);color:var(--text);font-size:9px;font-weight:800;cursor:pointer;font-family:var(--font-display)">OK</button>
+    </div>
+
+    <!-- Tools -->
+    <div style="display:flex;align-items:center;gap:3px;padding-right:10px;border-right:2px solid var(--border);margin-right:8px">
+      <button class="pe-tool-btn active" data-pe-tool="pencil" title="Crayon (B)">✏️</button>
+      <button class="pe-tool-btn" data-pe-tool="eraser" title="Gomme (E)">🧹</button>
+      <button class="pe-tool-btn" data-pe-tool="fill" title="Remplissage (F)">🪣</button>
+      <button class="pe-tool-btn" data-pe-tool="eyedropper" title="Pipette (I)">💉</button>
+      <button class="pe-tool-btn" data-pe-tool="line" title="Ligne (L)">╱</button>
+      <button class="pe-tool-btn" data-pe-tool="rect" title="Rectangle (R)">▭</button>
+      <button class="pe-tool-btn" data-pe-tool="circle" title="Cercle (C)">○</button>
+      <button class="pe-tool-btn" data-pe-tool="gradient" title="Dégradé (G)">▒</button>
+      <button class="pe-tool-btn" data-pe-tool="dither" title="Trame (D)">⠿</button>
+      <button class="pe-tool-btn" data-pe-tool="spray" title="Grain/Spray (S)">∷</button>
+      <button class="pe-tool-btn" data-pe-tool="star" title="Étoile (*)">★</button>
+      <button class="pe-tool-btn" data-pe-tool="pan" title="Pan (Espace)">✋</button>
+    </div>
+
+    <!-- Brush size -->
+    <div style="display:flex;align-items:center;gap:4px;padding-right:10px;border-right:2px solid var(--border);margin-right:8px">
+      <span style="font-size:9px;font-weight:700;color:var(--text3);font-family:var(--font-display)">PX</span>
+      <input type="range" id="pe-brush-size" min="1" max="32" value="1" style="width:60px;height:4px">
+      <span id="pe-brush-val" style="font-size:10px;font-weight:800;font-family:var(--font-display);min-width:16px">1</span>
+    </div>
+
+    <!-- Opacity -->
+    <div style="display:flex;align-items:center;gap:4px;padding-right:10px;border-right:2px solid var(--border);margin-right:8px">
+      <span style="font-size:9px;font-weight:700;color:var(--text3);font-family:var(--font-display)">OP</span>
+      <input type="range" id="pe-opacity" min="1" max="100" value="100" style="width:60px;height:4px">
+      <span id="pe-opacity-val" style="font-size:10px;font-weight:800;font-family:var(--font-display);min-width:28px">100%</span>
+    </div>
+
+    <!-- Symmetry -->
+    <div style="display:flex;align-items:center;gap:3px;padding-right:10px;border-right:2px solid var(--border);margin-right:8px">
+      <span style="font-size:9px;font-weight:700;color:var(--text3);font-family:var(--font-display)">SYM</span>
+      <button class="pe-sym-btn" data-pe-sym="h" title="Miroir horizontal">⇔</button>
+      <button class="pe-sym-btn" data-pe-sym="v" title="Miroir vertical">⇕</button>
+    </div>
+
+    <!-- Gradient mode (shows when gradient tool active) -->
+    <div id="pe-gradient-opts" style="display:none;align-items:center;gap:3px;padding-right:10px;border-right:2px solid var(--border);margin-right:8px">
+      <span style="font-size:9px;font-weight:700;color:var(--text3);font-family:var(--font-display)">GRAD</span>
+      <select id="pe-grad-mode" style="padding:2px 5px;border-radius:4px;border:var(--border-line);background:var(--s1);color:var(--text);font-size:10px;font-weight:700;font-family:var(--font-display);outline:none">
+        <option value="linear">Linéaire</option>
+        <option value="radial">Radial</option>
+        <option value="dithered">Tramé</option>
+        <option value="noise">Bruit</option>
+      </select>
+    </div>
+
+    <!-- Undo/Redo/Grid/Zoom -->
+    <div style="display:flex;align-items:center;gap:3px;margin-left:auto">
+      <button id="pe-undo-btn" class="pe-act-btn" title="Annuler (Ctrl+Z)">↩</button>
+      <button id="pe-redo-btn" class="pe-act-btn" title="Refaire (Ctrl+Y)">↪</button>
+      <button id="pe-grid-btn" class="pe-act-btn active" title="Grille (G)">⊞</button>
+      <button id="pe-zoom-out-btn" class="pe-act-btn" title="Dézoomer (-)">−</button>
+      <span id="pe-zoom-val" style="font-size:10px;font-weight:800;font-family:var(--font-display);min-width:36px;text-align:center">8×</span>
+      <button id="pe-zoom-in-btn" class="pe-act-btn" title="Zoomer (+)">+</button>
+      <button id="pe-fit-btn" class="pe-act-btn" title="Fit">⊡</button>
+    </div>
+  </div>
+
+  <!-- Main area -->
+  <div style="display:flex;flex:1;overflow:hidden;min-height:0">
+
+    <!-- Left: Layers + Frames -->
+    <div id="pe-left-panel" style="width:160px;flex-shrink:0;border-right:var(--border-main);background:var(--s1);display:flex;flex-direction:column;overflow:hidden">
+
+      <!-- Layers -->
+      <div style="border-bottom:var(--border-main);flex:1;display:flex;flex-direction:column;min-height:0">
+        <div style="padding:6px 8px;font-size:9px;font-weight:800;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+          Calques
+          <button id="pe-add-layer" style="font-size:14px;font-weight:700;background:var(--accent);border:var(--border-main);border-radius:4px;cursor:pointer;width:20px;height:20px;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--border);line-height:1">+</button>
+        </div>
+        <div id="pe-layers-list" style="flex:1;overflow-y:auto;padding:4px"></div>
+      </div>
+
+      <!-- Frames -->
+      <div style="flex-shrink:0;max-height:140px;display:flex;flex-direction:column">
+        <div style="padding:6px 8px;font-size:9px;font-weight:800;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+          Frames
+          <div style="display:flex;gap:3px">
+            <button id="pe-add-frame" style="font-size:14px;font-weight:700;background:var(--accent);border:var(--border-main);border-radius:4px;cursor:pointer;width:20px;height:20px;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--border);line-height:1">+</button>
+            <button id="pe-play-btn" style="font-size:10px;font-weight:700;background:var(--s2);border:var(--border-line);border-radius:4px;cursor:pointer;width:20px;height:20px;display:flex;align-items:center;justify-content:center" title="Lecture animation">▶</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;padding:4px 8px;flex-shrink:0">
+          <span style="font-size:9px;color:var(--text3);font-family:var(--font-display)">FPS</span>
+          <input type="number" id="pe-fps" value="8" min="1" max="60" style="width:36px;padding:2px 4px;border-radius:4px;border:var(--border-line);background:var(--s2);color:var(--text);font-size:10px;font-weight:700;outline:none">
+        </div>
+        <div id="pe-frames-list" style="display:flex;gap:3px;overflow-x:auto;padding:4px 8px;flex-wrap:nowrap"></div>
+      </div>
+    </div>
+
+    <!-- Center: Canvas -->
+    <div id="pe-canvas-container" style="flex:1;overflow:hidden;position:relative;background:repeating-conic-gradient(#ccc 0% 25%, #eee 0% 50%) 0 0 / 16px 16px;cursor:crosshair">
+      <canvas id="pe-canvas" style="position:absolute;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:top left"></canvas>
+      <canvas id="pe-overlay" style="position:absolute;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:top left;pointer-events:none"></canvas>
+      <canvas id="pe-grid-canvas" style="position:absolute;image-rendering:pixelated;transform-origin:top left;pointer-events:none;opacity:.4"></canvas>
+      <!-- Pixel coords display -->
+      <div id="pe-coords" style="position:absolute;bottom:8px;right:8px;background:rgba(26,26,26,.75);color:#fff;font-size:10px;font-weight:700;font-family:Space Mono,monospace;padding:3px 8px;border-radius:4px">0, 0</div>
+    </div>
+
+    <!-- Right: Colors -->
+    <div id="pe-right-panel" style="width:200px;flex-shrink:0;border-left:var(--border-main);background:var(--s1);display:flex;flex-direction:column;overflow-y:auto">
+
+      <!-- FG/BG colors -->
+      <div style="padding:10px;border-bottom:var(--border-main);flex-shrink:0">
+        <div style="font-size:9px;font-weight:800;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px">Couleurs</div>
+        <div style="position:relative;width:72px;height:60px;margin-bottom:8px">
+          <!-- BG color -->
+          <div id="pe-bg-swatch" style="position:absolute;bottom:0;right:0;width:44px;height:44px;border:var(--border-main);border-radius:6px;cursor:pointer;box-shadow:var(--shadow-sm);background:#ffffff"></div>
+          <!-- FG color -->
+          <div id="pe-fg-swatch" style="position:absolute;top:0;left:0;width:44px;height:44px;border:var(--border-main);border-radius:6px;cursor:pointer;box-shadow:var(--shadow);background:#000000;z-index:1"></div>
+          <!-- Swap -->
+          <button id="pe-swap-colors" style="position:absolute;bottom:0;left:0;width:18px;height:18px;border-radius:50%;border:var(--border-line);background:var(--s2);cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--border);z-index:2">⇄</button>
+        </div>
+        <input type="color" id="pe-fg-picker" value="#000000" style="width:100%;height:28px;border-radius:5px;border:var(--border-main);background:var(--s2);cursor:pointer;padding:2px;box-shadow:var(--shadow-sm)">
+        <div style="margin-top:4px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+          <input type="text" id="pe-hex-input" value="#000000" maxlength="7" style="padding:4px 6px;border-radius:4px;border:var(--border-main);background:var(--s2);color:var(--text);font-size:10px;font-weight:700;font-family:Space Mono,monospace;outline:none;box-shadow:2px 2px 0 var(--border)">
+          <button id="pe-hex-apply" style="padding:4px 6px;border-radius:4px;border:var(--border-main);background:var(--accent);color:var(--text);font-size:9px;font-weight:800;cursor:pointer;font-family:var(--font-display);box-shadow:var(--shadow-sm)">OK</button>
+        </div>
+      </div>
+
+      <!-- Palette -->
+      <div style="padding:10px;flex-shrink:0">
+        <div style="font-size:9px;font-weight:800;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+          Palette
+          <div style="display:flex;gap:3px">
+            <select id="pe-palette-preset" style="padding:2px 4px;border-radius:3px;border:var(--border-line);background:var(--s2);color:var(--text);font-size:8px;font-weight:700;font-family:var(--font-display);outline:none">
+              <option value="pico8">PICO-8</option>
+              <option value="gameboy">Game Boy</option>
+              <option value="ega">EGA 16</option>
+              <option value="cga">CGA</option>
+              <option value="nes">NES</option>
+              <option value="c64">C64</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+        </div>
+        <div id="pe-palette-grid" style="display:grid;grid-template-columns:repeat(8,1fr);gap:2px"></div>
+        <div style="margin-top:6px;display:flex;gap:3px">
+          <button id="pe-add-color" style="flex:1;padding:4px;border-radius:4px;border:var(--border-line);background:var(--s2);color:var(--text);font-size:9px;font-weight:800;cursor:pointer;font-family:var(--font-display);box-shadow:2px 2px 0 var(--border)">+ Couleur</button>
+          <button id="pe-clear-palette" style="padding:4px 8px;border-radius:4px;border:var(--border-line);background:var(--red-bg);color:var(--red);font-size:9px;font-weight:800;cursor:pointer;font-family:var(--font-display)">✕</button>
+        </div>
+      </div>
+
+      <!-- Export -->
+      <div style="padding:10px;border-top:var(--border-main);margin-top:auto;flex-shrink:0">
+        <div style="font-size:9px;font-weight:800;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px">Export</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
+          <span style="font-size:9px;color:var(--text3);font-family:var(--font-display)">SCALE</span>
+          <select id="pe-export-scale" style="padding:3px 5px;border-radius:4px;border:var(--border-line);background:var(--s2);color:var(--text);font-size:10px;font-weight:700;font-family:var(--font-display);outline:none">
+            <option value="1">×1</option>
+            <option value="2">×2</option>
+            <option value="4">×4</option>
+            <option value="8" selected>×8</option>
+            <option value="16">×16</option>
+            <option value="24">×24</option>
+            <option value="32">×32</option>
+          </select>
+          <select id="pe-export-fmt" style="padding:3px 5px;border-radius:4px;border:var(--border-line);background:var(--s2);color:var(--text);font-size:10px;font-weight:700;font-family:var(--font-display);outline:none">
+            <option value="png">PNG</option>
+            <option value="jpg">JPG</option>
+          </select>
+        </div>
+        <button id="pe-export-btn" style="width:100%;padding:8px;border-radius:5px;border:var(--border-main);background:var(--accent);color:var(--text);font-size:10px;font-weight:800;cursor:pointer;font-family:var(--font-display);box-shadow:var(--shadow);letter-spacing:.04em;text-transform:uppercase;transition:all .08s">Export PNG</button>
+        <div style="height:4px"></div>
+        <button id="pe-export-gif-btn" style="width:100%;padding:7px;border-radius:5px;border:var(--border-main);background:var(--s2);color:var(--text);font-size:10px;font-weight:800;cursor:pointer;font-family:var(--font-display);box-shadow:var(--shadow-sm);letter-spacing:.04em;text-transform:uppercase;transition:all .08s">Export GIF (anim)</button>
+        <div style="height:4px"></div>
+        <button id="pe-import-ref-btn" style="width:100%;padding:7px;border-radius:5px;border:var(--border-line);background:var(--s1);color:var(--text2);font-size:9px;font-weight:700;cursor:pointer;font-family:var(--font-display);transition:all .08s">+ Image de référence</button>
+        <input type="file" id="pe-ref-input" accept="image/*" style="display:none">
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .pe-tool-btn{width:28px;height:28px;border-radius:4px;border:var(--border-line);background:var(--s1);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .08s;box-shadow:2px 2px 0 rgba(26,26,26,.2)}
+    .pe-tool-btn:hover{background:var(--s3);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--border)}
+    .pe-tool-btn.active{background:var(--accent);border-color:var(--border);box-shadow:var(--shadow-sm);font-weight:800}
+    .pe-act-btn{width:26px;height:26px;border-radius:4px;border:var(--border-line);background:var(--s1);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .08s;box-shadow:2px 2px 0 rgba(26,26,26,.2);font-weight:700}
+    .pe-act-btn:hover{background:var(--s3);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--border)}
+    .pe-act-btn.active{background:var(--accent);border-color:var(--border);box-shadow:var(--shadow-sm)}
+    .pe-sym-btn{width:26px;height:26px;border-radius:4px;border:var(--border-line);background:var(--s1);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .08s;font-weight:700}
+    .pe-sym-btn.active{background:var(--purple);border-color:var(--border);box-shadow:var(--shadow-sm)}
+    .pe-layer-item{display:flex;align-items:center;gap:5px;padding:5px 6px;border-radius:5px;border:var(--border-line);background:var(--s2);margin-bottom:3px;cursor:pointer;transition:all .08s;font-size:10px;font-weight:600;box-shadow:2px 2px 0 rgba(26,26,26,.1)}
+    .pe-layer-item.active{background:var(--accent);border-color:var(--border);font-weight:800;box-shadow:var(--shadow-sm)}
+    .pe-layer-item:hover:not(.active){background:var(--s3)}
+    .pe-frame-thumb{border:2px solid var(--border);border-radius:4px;cursor:pointer;image-rendering:pixelated;transition:all .08s;flex-shrink:0}
+    .pe-frame-thumb.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+  </style>
+  </div>
+
+  <!-- ══════════════════════════════════════
        TOOL: CHANGELOG
   ══════════════════════════════════════ -->
   <div class="tool-view" id="tool-changelog">
@@ -1901,7 +2129,7 @@ let currentTool = null;
 let sidebarOpen = true;
 
 const TOOL_NAMES = {
-  converter:'Convertisseur universel', pixelart:'8-bit / Pixel art',
+  converter:'Convertisseur universel', pixelart:'8-bit / Pixel art', pixeleditor:'Éditeur Pixel Art',
   img2pdf:'Images → PDF',
   optimizer:'Optimiseur web', carousel:'Carrousel Instagram',
   panorama:'Frise panoramique', contact:'Strip de contact', sorter:'Trieur visuel',
@@ -2181,6 +2409,7 @@ function makeOutCard(blobUrl, label, tag, dlFn) {
     document.getElementById('px-empty').style.display='none';
     document.getElementById('px-out').style.display='flex';
     document.getElementById('px-dl-btn').disabled=false;
+    document.getElementById('px-send-editor-btn').disabled=false;
     updateDimInfo();
     scheduleRender();
   });
@@ -2476,6 +2705,22 @@ function makeOutCard(blobUrl, label, tag, dlFn) {
     if(!resultBlob||!srcFile) return;
     const base=srcFile.name.replace(/\.[^.]+$/,'');
     dlBlob(resultBlob,`${base}_${pxRes}px_x${pxScale}_${activePaletteKey}_${pxDither}.${pxFmt}`);
+  });
+
+  // Send low-res pixel data to the pixel editor
+  document.getElementById('px-send-editor-btn').addEventListener('click',()=>{
+    if(!srcImg) return;
+    // Re-render at logical resolution (no upscale) and send ImageData
+    const aspect=srcImg.naturalHeight/srcImg.naturalWidth;
+    const lowW=pxRes, lowH=Math.max(1,Math.round(pxRes*aspect));
+    const tmpC=document.createElement('canvas');tmpC.width=lowW;tmpC.height=lowH;
+    const tmpCtx=tmpC.getContext('2d');
+    // Draw the processed pixel canvas at low res from preview
+    const previewC=document.getElementById('px-preview-canvas');
+    tmpCtx.imageSmoothingEnabled=false;
+    tmpCtx.drawImage(previewC,0,0,lowW,lowH);
+    const imgData=tmpCtx.getImageData(0,0,lowW,lowH);
+    if(window.sendToPixelEditor) window.sendToPixelEditor(imgData,lowW,lowH);
   });
 
   // Init
@@ -3958,6 +4203,915 @@ function makeOutCard(blobUrl, label, tag, dlFn) {
     const p=Math.max(0,Math.min(100,(e.clientX-rect.left)/rect.width*100));
     updateCompare(p);
   }
+})();
+
+// ═══════════════════════════════════════
+// PIXEL ART EDITOR — full engine
+// ═══════════════════════════════════════
+(()=>{
+'use strict';
+
+// ── State
+let cw=64,ch=64;         // canvas logical dimensions
+let zoom=8;              // px per pixel
+let panX=0,panY=0;       // canvas pan offset
+let showGrid=true;
+let activeTool='pencil';
+let brushSize=1;
+let opacity=1;
+let symmetryH=false,symmetryV=false;
+let gradMode='linear';
+let fgColor='#000000';
+let bgColor='#ffffff';
+
+// Layers: [{id, name, visible, canvas, ctx}]
+let layers=[];
+let activeLayerIdx=0;
+let nextLayerId=1;
+
+// Frames: [{id, layers: deep copies}]
+let frames=[];
+let activeFrameIdx=0;
+let nextFrameId=1;
+
+// Undo stack per frame (stores flattened ImageData per commit)
+let undoStack=[];   // [{frame,layerIdx,data}]
+let redoStack=[];
+const MAX_UNDO=80;
+
+// Drawing state
+let isDrawing=false;
+let lastPx=-1,lastPy=-1;
+let lineStart=null,shapeStart=null,gradStart=null;
+let animTimer=null;
+let refImage=null; // background reference image
+
+// Palettes
+const PALETTES={
+  pico8:['#000000','#1D2B53','#7E2553','#008751','#AB5236','#5F574F','#C2C3C7','#FFF1E8','#FF004D','#FFA300','#FFEC27','#00E436','#29ADFF','#83769C','#FF77A8','#FFCCAA'],
+  gameboy:['#0F380F','#306230','#8BAC0F','#9BBC0F'],
+  'gameboy-pocket':['#000000','#555555','#AAAAAA','#FFFFFF'],
+  ega:['#000000','#0000AA','#00AA00','#00AAAA','#AA0000','#AA00AA','#AA5500','#AAAAAA','#555555','#5555FF','#55FF55','#55FFFF','#FF5555','#FF55FF','#FFFF55','#FFFFFF'],
+  cga:['#000000','#555555','#FF55FF','#FFFFFF'],
+  nes:['#7C7C7C','#0000FC','#0000BC','#4428BC','#940084','#A80020','#A81000','#881400','#503000','#007800','#006800','#005800','#004058','#000000','#000000','#000000','#BCBCBC','#0078F8','#0058F8','#6844FC','#D800CC','#E40058','#F83800','#E45C10','#AC7C00','#00B800','#00A800','#00A844','#008888','#000000','#F8F8F8','#3CBCFC','#6888FC','#9878F8','#F878F8','#F85898','#F87858','#FCA044','#F8B800','#B8F818','#58D854','#58F898','#00E8D8','#787878','#FCFCFC','#A4E4FC','#B8B8F8','#D8B8F8','#F8B8F8','#F8A4C0','#F0D0B0','#FCE0A8','#F8D878','#D8F878','#B8F8B8','#B8F8D8','#00FCFC','#F8D8F8','#000000'],
+  c64:['#000000','#FFFFFF','#880000','#AAFFEE','#CC44CC','#00CC55','#0000AA','#EEEE77','#DD8855','#664400','#FF7777','#333333','#777777','#AAFF66','#0088FF','#BBBBBB'],
+  custom:['#000000','#FFFFFF','#FF0000','#00FF00','#0000FF','#FFFF00','#FF00FF','#00FFFF']
+};
+let currentPalette=[...PALETTES.pico8];
+
+// ── DOM refs
+const canvas=document.getElementById('pe-canvas');
+const overlay=document.getElementById('pe-overlay');
+const gridCanvas=document.getElementById('pe-grid-canvas');
+const container=document.getElementById('pe-canvas-container');
+const layersList=document.getElementById('pe-layers-list');
+const framesList=document.getElementById('pe-frames-list');
+const coordsEl=document.getElementById('pe-coords');
+const paletteGrid=document.getElementById('pe-palette-grid');
+const fgSwatch=document.getElementById('pe-fg-swatch');
+const bgSwatch=document.getElementById('pe-bg-swatch');
+const fgPicker=document.getElementById('pe-fg-picker');
+const hexInput=document.getElementById('pe-hex-input');
+
+if(!canvas){return;} // not mounted yet
+
+const overlayCtx=overlay.getContext('2d');
+const gridCtx=gridCanvas.getContext('2d');
+
+// ── INIT
+function init(){
+  createCanvas(cw,ch);
+  addLayer('Calque 1');
+  addFrame();
+  renderLayersList();
+  renderFramesList();
+  renderPalette();
+  fitCanvas();
+  setupEvents();
+}
+
+// ── CANVAS CREATION
+function createCanvas(w,h){
+  cw=w;ch=h;
+  [canvas,overlay,gridCanvas].forEach(c=>{
+    c.width=w;c.height=h;
+  });
+  layers.forEach(l=>{
+    const old=l.canvas;
+    l.canvas=document.createElement('canvas');
+    l.canvas.width=w;l.canvas.height=h;
+    l.ctx=l.canvas.getContext('2d');
+    if(old) l.ctx.drawImage(old,0,0);
+  });
+  updateTransform();
+  drawGrid();
+  composite();
+}
+
+function updateTransform(){
+  const t=`translate(${panX}px,${panY}px) scale(${zoom})`;
+  [canvas,overlay,gridCanvas].forEach(c=>{
+    c.style.transform=t;
+    c.style.width=cw+'px';
+    c.style.height=ch+'px';
+  });
+}
+
+function fitCanvas(){
+  const rect=container.getBoundingClientRect();
+  const fitZoom=Math.min(Math.floor(rect.width/cw),Math.floor(rect.height/ch));
+  zoom=Math.max(1,fitZoom);
+  panX=Math.round((rect.width-cw*zoom)/2);
+  panY=Math.round((rect.height-ch*zoom)/2);
+  updateTransform();
+  document.getElementById('pe-zoom-val').textContent=zoom+'×';
+}
+
+// ── LAYERS
+function addLayer(name){
+  const c=document.createElement('canvas');
+  c.width=cw;c.height=ch;
+  const l={id:nextLayerId++,name:name||'Calque '+nextLayerId,visible:true,opacity:1,canvas:c,ctx:c.getContext('2d')};
+  layers.splice(activeLayerIdx+1,0,l);
+  activeLayerIdx=layers.indexOf(l);
+  saveUndoState();
+  renderLayersList();
+  composite();
+}
+
+function renderLayersList(){
+  layersList.innerHTML='';
+  // Render in reverse (top layer shown first)
+  [...layers].reverse().forEach((l,ri)=>{
+    const i=layers.length-1-ri;
+    const item=document.createElement('div');
+    item.className='pe-layer-item'+(i===activeLayerIdx?' active':'');
+    item.style.cssText='display:flex;align-items:center;gap:5px;padding:5px 6px;border-radius:5px;border:2px solid #1A1A1A;background:'+(i===activeLayerIdx?'var(--accent)':'var(--s2)')+';margin-bottom:3px;cursor:pointer;font-size:10px;font-weight:'+(i===activeLayerIdx?'800':'600')+';box-shadow:2px 2px 0 rgba(26,26,26,.1)';
+
+    // Preview thumbnail
+    const thumb=document.createElement('canvas');
+    thumb.width=cw;thumb.height=ch;
+    thumb.getContext('2d').drawImage(l.canvas,0,0);
+    thumb.style.cssText='width:20px;height:20px;image-rendering:pixelated;border:1px solid #1A1A1A;border-radius:2px;flex-shrink:0;background:#fff';
+
+    // Visibility toggle
+    const vis=document.createElement('button');
+    vis.textContent=l.visible?'●':'○';
+    vis.style.cssText='background:none;border:none;cursor:pointer;font-size:12px;padding:0;width:16px;flex-shrink:0;color:'+(l.visible?'inherit':'#9B8E7E');
+    vis.addEventListener('click',e=>{e.stopPropagation();l.visible=!l.visible;composite();renderLayersList()});
+
+    const name=document.createElement('span');
+    name.textContent=l.name;
+    name.style.cssText='flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+
+    // Delete
+    const del=document.createElement('button');
+    del.textContent='×';
+    del.style.cssText='background:none;border:none;cursor:pointer;font-size:13px;padding:0;color:var(--red);font-weight:700;flex-shrink:0';
+    del.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(layers.length<=1)return;
+      layers.splice(i,1);
+      activeLayerIdx=Math.min(activeLayerIdx,layers.length-1);
+      composite();renderLayersList();
+    });
+
+    item.appendChild(thumb);item.appendChild(vis);item.appendChild(name);item.appendChild(del);
+    item.addEventListener('click',()=>{activeLayerIdx=i;renderLayersList()});
+    layersList.appendChild(item);
+  });
+}
+
+// ── FRAMES
+function addFrame(){
+  // Deep copy current layers
+  const frameLayers=layers.map(l=>{
+    const c=document.createElement('canvas');
+    c.width=cw;c.height=ch;
+    c.getContext('2d').drawImage(l.canvas,0,0);
+    return{...l,canvas:c,ctx:c.getContext('2d')};
+  });
+  frames.splice(activeFrameIdx+1,0,{id:nextFrameId++,layers:frameLayers});
+  activeFrameIdx=frames.indexOf(frames[activeFrameIdx+1])||frames.length-1;
+  // Actually switch to new blank frame
+  activeFrameIdx=frames.length-1;
+  switchFrame(activeFrameIdx);
+  renderFramesList();
+}
+
+function switchFrame(idx){
+  // Save current layers to current frame
+  frames[activeFrameIdx].layers=layers.map(l=>{
+    const c=document.createElement('canvas');
+    c.width=cw;c.height=ch;
+    c.getContext('2d').drawImage(l.canvas,0,0);
+    return{...l,canvas:c,ctx:c.getContext('2d')};
+  });
+  activeFrameIdx=idx;
+  // Restore layers from frame
+  const fl=frames[idx].layers;
+  layers=fl.map(l=>{
+    const c=document.createElement('canvas');
+    c.width=cw;c.height=ch;
+    c.getContext('2d').drawImage(l.canvas,0,0);
+    return{...l,canvas:c,ctx:c.getContext('2d')};
+  });
+  activeLayerIdx=Math.min(activeLayerIdx,layers.length-1);
+  composite();renderLayersList();renderFramesList();
+}
+
+function renderFramesList(){
+  framesList.innerHTML='';
+  frames.forEach((f,i)=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='position:relative;flex-shrink:0';
+
+    const thumb=document.createElement('canvas');
+    // Flatten frame for thumbnail
+    thumb.width=cw;thumb.height=ch;
+    const tctx=thumb.getContext('2d');
+    f.layers.filter(l=>l.visible).forEach(l=>tctx.drawImage(l.canvas,0,0));
+
+    const THUMB_W=Math.min(40,Math.round(40*(cw/ch)||40));
+    const THUMB_H=40;
+    thumb.style.cssText=`width:${THUMB_W}px;height:${THUMB_H}px;image-rendering:pixelated;border:2.5px solid ${i===activeFrameIdx?'var(--accent)':'#1A1A1A'};border-radius:4px;cursor:pointer;background:#fff;display:block`;
+    thumb.className='pe-frame-thumb'+(i===activeFrameIdx?' active':'');
+    thumb.addEventListener('click',()=>{if(i!==activeFrameIdx)switchFrame(i)});
+
+    // Frame number
+    const num=document.createElement('div');
+    num.textContent=i+1;
+    num.style.cssText='position:absolute;top:2px;left:2px;font-size:8px;font-weight:800;background:#1A1A1A;color:#fff;padding:0 3px;border-radius:2px;font-family:Space Mono,monospace;pointer-events:none';
+
+    // Delete frame
+    if(frames.length>1){
+      const del=document.createElement('button');
+      del.textContent='×';
+      del.style.cssText='position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--red);border:1.5px solid #1A1A1A;color:#fff;cursor:pointer;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0;line-height:1';
+      del.addEventListener('click',e=>{
+        e.stopPropagation();
+        frames.splice(i,1);
+        const newIdx=Math.min(activeFrameIdx,frames.length-1);
+        if(i===activeFrameIdx) switchFrame(newIdx);
+        else{activeFrameIdx=i<activeFrameIdx?activeFrameIdx-1:activeFrameIdx;renderFramesList();}
+      });
+      wrap.appendChild(del);
+    }
+    wrap.appendChild(thumb);wrap.appendChild(num);
+    framesList.appendChild(wrap);
+  });
+}
+
+// ── COMPOSITE (flatten visible layers to display canvas)
+function composite(){
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,cw,ch);
+  if(refImage){
+    ctx.save();ctx.globalAlpha=0.35;
+    ctx.drawImage(refImage,0,0,cw,ch);
+    ctx.restore();
+  }
+  layers.forEach(l=>{
+    if(!l.visible)return;
+    ctx.save();ctx.globalAlpha=l.opacity||1;
+    ctx.drawImage(l.canvas,0,0);
+    ctx.restore();
+  });
+  // Update layer thumbnails lazily
+  updateLayerThumbs();
+}
+
+function updateLayerThumbs(){
+  const thumbs=layersList.querySelectorAll('canvas');
+  [...thumbs].forEach((t,ri)=>{
+    const i=layers.length-1-ri;
+    if(layers[i]){t.getContext('2d').clearRect(0,0,t.width,t.height);t.getContext('2d').drawImage(layers[i].canvas,0,0);}
+  });
+}
+
+// ── GRID
+function drawGrid(){
+  gridCtx.clearRect(0,0,cw,ch);
+  if(!showGrid||zoom<4)return;
+  gridCtx.strokeStyle='rgba(26,26,26,0.25)';
+  gridCtx.lineWidth=1/zoom;
+  for(let x=0;x<=cw;x++){gridCtx.beginPath();gridCtx.moveTo(x,0);gridCtx.lineTo(x,ch);gridCtx.stroke();}
+  for(let y=0;y<=ch;y++){gridCtx.beginPath();gridCtx.moveTo(0,y);gridCtx.lineTo(cw,y);gridCtx.stroke();}
+}
+
+// ── UNDO/REDO
+function saveUndoState(){
+  const ctx=layers[activeLayerIdx].ctx;
+  const data=ctx.getImageData(0,0,cw,ch);
+  undoStack.push({layerIdx:activeLayerIdx,frameIdx:activeFrameIdx,data});
+  if(undoStack.length>MAX_UNDO) undoStack.shift();
+  redoStack=[];
+}
+
+function undo(){
+  if(!undoStack.length)return;
+  const state=undoStack.pop();
+  // Save current for redo
+  const cur=layers[state.layerIdx].ctx.getImageData(0,0,cw,ch);
+  redoStack.push({layerIdx:state.layerIdx,frameIdx:state.frameIdx,data:cur});
+  layers[state.layerIdx].ctx.putImageData(state.data,0,0);
+  composite();
+}
+
+function redo(){
+  if(!redoStack.length)return;
+  const state=redoStack.pop();
+  const cur=layers[state.layerIdx].ctx.getImageData(0,0,cw,ch);
+  undoStack.push({layerIdx:state.layerIdx,frameIdx:state.frameIdx,data:cur});
+  layers[state.layerIdx].ctx.putImageData(state.data,0,0);
+  composite();
+}
+
+// ── COLOR UTILS
+function hexToRgba(hex,a=1){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return{r,g,b,a:Math.round(a*255)};
+}
+function rgbaToHex(r,g,b){return'#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('')}
+function lerpColor(c1,c2,t){
+  const a=hexToRgba(c1),b=hexToRgba(c2);
+  return rgbaToHex(Math.round(a.r+(b.r-a.r)*t),Math.round(a.g+(b.g-a.g)*t),Math.round(a.b+(b.b-a.b)*t));
+}
+
+// ── DRAWING UTILS
+function getActiveCtx(){return layers[activeLayerIdx].ctx;}
+
+function applySymmetry(px,py,fn){
+  fn(px,py);
+  if(symmetryH) fn(cw-1-px,py);
+  if(symmetryV) fn(px,ch-1-py);
+  if(symmetryH&&symmetryV) fn(cw-1-px,ch-1-py);
+}
+
+function putPixel(ctx,px,py,color,opac=1){
+  if(px<0||py<0||px>=cw||py>=ch)return;
+  const{r,g,b}=hexToRgba(color);
+  const a=Math.round(opac*255);
+  const id=ctx.getImageData(px,py,1,1);
+  const d=id.data;
+  // Alpha blending
+  const srcA=a/255,dstA=d[3]/255;
+  const outA=srcA+dstA*(1-srcA);
+  if(outA===0){d[0]=0;d[1]=0;d[2]=0;d[3]=0;}
+  else{
+    d[0]=Math.round((r*srcA+d[0]*dstA*(1-srcA))/outA);
+    d[1]=Math.round((g*srcA+d[1]*dstA*(1-srcA))/outA);
+    d[2]=Math.round((b*srcA+d[2]*dstA*(1-srcA))/outA);
+    d[3]=Math.round(outA*255);
+  }
+  ctx.putImageData(id,px,py);
+}
+
+function drawPixelBrush(ctx,px,py,color,size,opac){
+  const half=Math.floor(size/2);
+  for(let dy=-half;dy<=half;dy++){
+    for(let dx=-half;dx<=half;dx++){
+      if(size>1&&dx*dx+dy*dy>half*half+half)continue; // circular
+      putPixel(ctx,px+dx,py+dy,color,opac);
+    }
+  }
+}
+
+function screenToPixel(e){
+  const rect=container.getBoundingClientRect();
+  const mx=(e.clientX||e.touches?.[0]?.clientX||0)-rect.left;
+  const my=(e.clientY||e.touches?.[0]?.clientY||0)-rect.top;
+  return{
+    px:Math.floor((mx-panX)/zoom),
+    py:Math.floor((my-panY)/zoom)
+  };
+}
+
+// Bresenham line
+function bresenham(x0,y0,x1,y1,fn){
+  let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0);
+  let sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;
+  while(true){fn(x0,y0);if(x0===x1&&y0===y1)break;const e2=2*err;if(e2>-dy){err-=dy;x0+=sx;}if(e2<dx){err+=dx;y0+=sy;}}
+}
+
+// Flood fill
+function floodFill(ctx,px,py,fillColor){
+  if(px<0||py<0||px>=cw||py>=ch)return;
+  const id=ctx.getImageData(0,0,cw,ch);
+  const d=id.data;
+  const i=(py*cw+px)*4;
+  const tr=d[i],tg=d[i+1],tb=d[i+2],ta=d[i+3];
+  const{r,g,b,a}=hexToRgba(fillColor,opacity);
+  if(tr===r&&tg===g&&tb===b&&ta===a)return;
+  const stack=[[px,py]];
+  const visited=new Uint8Array(cw*ch);
+  while(stack.length){
+    const[x,y]=stack.pop();
+    if(x<0||y<0||x>=cw||y>=ch)continue;
+    const idx=(y*cw+x)*4;
+    if(visited[y*cw+x])continue;
+    if(d[idx]!==tr||d[idx+1]!==tg||d[idx+2]!==tb||d[idx+3]!==ta)continue;
+    visited[y*cw+x]=1;
+    d[idx]=r;d[idx+1]=g;d[idx+2]=b;d[idx+3]=a;
+    stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
+  }
+  ctx.putImageData(id,0,0);
+}
+
+// ── TOOL DRAWING
+function drawOverlayShape(px,py){
+  overlayCtx.clearRect(0,0,cw,ch);
+  if(!shapeStart)return;
+  const{x:x0,y:y0}=shapeStart;
+  overlayCtx.fillStyle=fgColor+Math.round(opacity*255).toString(16).padStart(2,'0');
+
+  if(activeTool==='line'){
+    bresenham(x0,y0,px,py,(x,y)=>{
+      overlayCtx.fillRect(x-Math.floor(brushSize/2),y-Math.floor(brushSize/2),brushSize,brushSize);
+    });
+  } else if(activeTool==='rect'){
+    const x=Math.min(x0,px),y=Math.min(y0,py),w=Math.abs(px-x0)+1,h=Math.abs(py-y0)+1;
+    overlayCtx.fillRect(x,y,w,h);
+  } else if(activeTool==='circle'){
+    drawEllipseToCtx(overlayCtx,x0,y0,px,py);
+  }
+}
+
+function drawEllipseToCtx(ctx,x0,y0,x1,y1){
+  const cx=(x0+x1)/2,cy=(y0+y1)/2;
+  const rx=Math.abs(x1-x0)/2,ry=Math.abs(y1-y0)/2;
+  const steps=Math.max(rx,ry)*4||8;
+  for(let i=0;i<steps;i++){
+    const a=2*Math.PI*i/steps;
+    const x=Math.round(cx+rx*Math.cos(a)),y=Math.round(cy+ry*Math.sin(a));
+    ctx.fillRect(x,y,brushSize,brushSize);
+  }
+}
+
+function drawStar(ctx,cx,cy,r,points,color){
+  for(let i=0;i<points*2;i++){
+    const angle=Math.PI*i/points-Math.PI/2;
+    const radius=i%2===0?r:r/2;
+    const x=Math.round(cx+radius*Math.cos(angle));
+    const y=Math.round(cy+radius*Math.sin(angle));
+    drawPixelBrush(ctx,x,y,color,brushSize,opacity);
+  }
+}
+
+function applyGradient(ctx,x0,y0,x1,y1){
+  const id=ctx.getImageData(0,0,cw,ch);
+  const d=id.data;
+  const dx=x1-x0,dy=y1-y0,len=Math.sqrt(dx*dx+dy*dy)||1;
+
+  for(let y=0;y<ch;y++){
+    for(let x=0;x<cw;x++){
+      let t=0;
+      if(gradMode==='linear'){
+        t=((x-x0)*dx+(y-y0)*dy)/(len*len);
+        t=Math.max(0,Math.min(1,t));
+      } else if(gradMode==='radial'){
+        t=Math.min(1,Math.sqrt((x-x0)**2+(y-y0)**2)/len);
+      } else if(gradMode==='dithered'){
+        const raw=((x-x0)*dx+(y-y0)*dy)/(len*len);
+        t=Math.max(0,Math.min(1,raw));
+        // Bayer dithering
+        const bayer=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+        t=t>(bayer[y%4][x%4]/16)?1:0;
+      } else if(gradMode==='noise'){
+        t=Math.max(0,Math.min(1,((x-x0)*dx+(y-y0)*dy)/(len*len)));
+        t=Math.abs(t+(Math.random()-0.5)*0.3);t=Math.max(0,Math.min(1,t));
+      }
+      const hex=lerpColor(fgColor,bgColor,t);
+      const{r,g,b}=hexToRgba(hex);
+      const idx=(y*cw+x)*4;
+      const srcA=Math.round(opacity*255);
+      const dstA=d[idx+3];
+      const outA=srcA/255+dstA/255*(1-srcA/255);
+      if(outA===0){d[idx+3]=0;}
+      else{
+        d[idx]=Math.round((r*srcA/255+d[idx]*dstA/255*(1-srcA/255))/outA);
+        d[idx+1]=Math.round((g*srcA/255+d[idx+1]*dstA/255*(1-srcA/255))/outA);
+        d[idx+2]=Math.round((b*srcA/255+d[idx+2]*dstA/255*(1-srcA/255))/outA);
+        d[idx+3]=Math.round(outA*255);
+      }
+    }
+  }
+  ctx.putImageData(id,0,0);
+}
+
+function applyDitherBrush(ctx,px,py){
+  const h=brushSize*2;
+  const bayer=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+  for(let dy=-h;dy<=h;dy++){
+    for(let dx=-h;dx<=h;dx++){
+      if(dx*dx+dy*dy>h*h) continue;
+      const x=px+dx,y=py+dy;
+      const thr=bayer[(y&3)][(x&3)]/16;
+      if(opacity>=thr) putPixel(ctx,x,y,fgColor,1);
+    }
+  }
+}
+
+function applySpray(ctx,px,py){
+  const r=brushSize*3;
+  const count=Math.max(4,brushSize*brushSize*2);
+  for(let i=0;i<count;i++){
+    const angle=Math.random()*Math.PI*2;
+    const dist=Math.random()*r;
+    const x=Math.round(px+Math.cos(angle)*dist);
+    const y=Math.round(py+Math.sin(angle)*dist);
+    if(Math.random()<opacity) putPixel(ctx,x,y,fgColor,1);
+  }
+}
+
+// ── EVENT SETUP
+function setupEvents(){
+  // Mouse
+  container.addEventListener('mousedown',onDown);
+  container.addEventListener('mousemove',onMove);
+  window.addEventListener('mouseup',onUp);
+  container.addEventListener('wheel',onWheel,{passive:false});
+  // Touch
+  container.addEventListener('touchstart',e=>{e.preventDefault();onDown(e.touches[0])},{passive:false});
+  container.addEventListener('touchmove',e=>{e.preventDefault();onMove(e.touches[0])},{passive:false});
+  window.addEventListener('touchend',e=>onUp(e));
+  // Context menu
+  container.addEventListener('contextmenu',e=>{e.preventDefault();pickBgColor(e)});
+}
+
+let panStartX,panStartY,panStartPanX,panStartPanY,isPanning=false;
+
+function onDown(e){
+  if(e.button===2){pickBgColor(e);return;}
+  const{px,py}=screenToPixel(e);
+  coordsEl.textContent=px+', '+py;
+
+  if(activeTool==='pan'||e.button===1||e.altKey){
+    isPanning=true;
+    panStartX=e.clientX||e.clientX;panStartY=e.clientY;
+    panStartPanX=panX;panStartPanY=panY;
+    container.style.cursor='grabbing';
+    return;
+  }
+
+  isDrawing=true;
+  const ctx=getActiveCtx();
+  saveUndoState();
+
+  if(activeTool==='eyedropper'){pickFgFromCanvas(px,py);isDrawing=false;return;}
+
+  if(activeTool==='fill'){
+    applySymmetry(px,py,(x,y)=>floodFill(ctx,x,y,fgColor));
+    composite();isDrawing=false;return;
+  }
+
+  if(['line','rect','circle','gradient'].includes(activeTool)){
+    shapeStart={x:px,y:py};
+    if(activeTool==='gradient') gradStart={x:px,y:py};
+    lastPx=px;lastPy=py;
+    return;
+  }
+
+  if(activeTool==='star'){
+    drawStar(ctx,px,py,Math.max(2,brushSize*4),5,fgColor);
+    composite();isDrawing=false;return;
+  }
+
+  lastPx=px;lastPy=py;
+  drawStroke(ctx,px,py);
+  composite();
+}
+
+function onMove(e){
+  const{px,py}=screenToPixel(e);
+  coordsEl.textContent=px+', '+py;
+
+  if(isPanning){
+    const dx=(e.clientX||0)-panStartX;
+    const dy=(e.clientY||0)-panStartY;
+    panX=panStartPanX+dx;panY=panStartPanY+dy;
+    updateTransform();return;
+  }
+  if(!isDrawing)return;
+
+  const ctx=getActiveCtx();
+
+  if(['line','rect','circle'].includes(activeTool)){
+    drawOverlayShape(px,py);
+    lastPx=px;lastPy=py;return;
+  }
+
+  if(activeTool==='gradient'&&gradStart){
+    overlayCtx.clearRect(0,0,cw,ch);
+    overlayCtx.strokeStyle=fgColor;overlayCtx.lineWidth=1/zoom;
+    overlayCtx.setLineDash([2/zoom,2/zoom]);
+    overlayCtx.beginPath();overlayCtx.moveTo(gradStart.x+.5,gradStart.y+.5);overlayCtx.lineTo(px+.5,py+.5);overlayCtx.stroke();
+    overlayCtx.setLineDash([]);
+    lastPx=px;lastPy=py;return;
+  }
+
+  if(activeTool==='pencil'||activeTool==='eraser'){
+    // Interpolate
+    bresenham(lastPx,lastPy,px,py,(x,y)=>{
+      applySymmetry(x,y,(sx,sy)=>drawStroke(ctx,sx,sy));
+    });
+    composite();
+  } else if(activeTool==='dither'){
+    applyDitherBrush(ctx,px,py);composite();
+  } else if(activeTool==='spray'){
+    applySpray(ctx,px,py);composite();
+  }
+
+  lastPx=px;lastPy=py;
+}
+
+function onUp(e){
+  isPanning=false;
+  container.style.cursor=activeTool==='pan'?'grab':'crosshair';
+
+  if(!isDrawing){isDrawing=false;return;}
+  isDrawing=false;
+
+  const{px,py}=screenToPixel(typeof e.clientX!=='undefined'?e:{clientX:lastPx*zoom+panX,clientY:lastPy*zoom+panY});
+  const ctx=getActiveCtx();
+  overlayCtx.clearRect(0,0,cw,ch);
+
+  if(activeTool==='line'&&shapeStart){
+    bresenham(shapeStart.x,shapeStart.y,lastPx,lastPy,(x,y)=>{
+      applySymmetry(x,y,(sx,sy)=>drawPixelBrush(ctx,sx,sy,fgColor,brushSize,opacity));
+    });
+  } else if(activeTool==='rect'&&shapeStart){
+    const x=Math.min(shapeStart.x,lastPx),y=Math.min(shapeStart.y,lastPy);
+    const w=Math.abs(lastPx-shapeStart.x)+1,h=Math.abs(lastPy-shapeStart.y)+1;
+    const id=ctx.getImageData(0,0,cw,ch);
+    const{r,g,b,a}=hexToRgba(fgColor,opacity);
+    for(let dy=0;dy<h;dy++) for(let dx=0;dx<w;dx++){
+      const idx=((y+dy)*cw+(x+dx))*4;
+      if(x+dx<0||y+dy<0||x+dx>=cw||y+dy>=ch)continue;
+      id.data[idx]=r;id.data[idx+1]=g;id.data[idx+2]=b;id.data[idx+3]=a;
+    }
+    ctx.putImageData(id,0,0);
+  } else if(activeTool==='circle'&&shapeStart){
+    drawEllipseToCtx(ctx,shapeStart.x,shapeStart.y,lastPx,lastPy);
+  } else if(activeTool==='gradient'&&gradStart){
+    applyGradient(ctx,gradStart.x,gradStart.y,lastPx,lastPy);
+    gradStart=null;
+  }
+
+  shapeStart=null;
+  composite();
+}
+
+function drawStroke(ctx,px,py){
+  if(activeTool==='eraser'){
+    ctx.save();ctx.globalCompositeOperation='destination-out';
+    const r=Math.floor(brushSize/2);
+    ctx.beginPath();ctx.arc(px,py,Math.max(.5,r),.0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  } else if(activeTool==='pencil'){
+    applySymmetry(px,py,(sx,sy)=>drawPixelBrush(ctx,sx,sy,fgColor,brushSize,opacity));
+  } else if(activeTool==='dither'){
+    applyDitherBrush(ctx,px,py);
+  } else if(activeTool==='spray'){
+    applySpray(ctx,px,py);
+  }
+}
+
+function onWheel(e){
+  e.preventDefault();
+  const rect=container.getBoundingClientRect();
+  const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  const oldZoom=zoom;
+  if(e.deltaY<0) zoom=Math.min(64,zoom+1);
+  else zoom=Math.max(1,zoom-1);
+  // Zoom toward mouse
+  panX=Math.round(mx-(mx-panX)*zoom/oldZoom);
+  panY=Math.round(my-(my-panY)*zoom/oldZoom);
+  updateTransform();drawGrid();
+  document.getElementById('pe-zoom-val').textContent=zoom+'×';
+}
+
+function pickFgFromCanvas(px,py){
+  const d=canvas.getContext('2d').getImageData(px,py,1,1).data;
+  if(d[3]===0)return;
+  fgColor=rgbaToHex(d[0],d[1],d[2]);
+  updateColorUI();
+}
+
+function pickBgColor(e){
+  const{px,py}=screenToPixel(e);
+  const d=canvas.getContext('2d').getImageData(px,py,1,1).data;
+  if(d[3]===0)return;
+  bgColor=rgbaToHex(d[0],d[1],d[2]);
+  bgSwatch.style.background=bgColor;
+}
+
+// ── COLOR UI
+function updateColorUI(){
+  fgSwatch.style.background=fgColor;
+  fgPicker.value=fgColor;
+  hexInput.value=fgColor;
+}
+
+// ── PALETTE
+function renderPalette(){
+  paletteGrid.innerHTML='';
+  currentPalette.forEach((c,i)=>{
+    const swatch=document.createElement('div');
+    swatch.style.cssText=`width:100%;aspect-ratio:1;background:${c};border:2px solid #1A1A1A;border-radius:3px;cursor:pointer;box-shadow:2px 2px 0 rgba(26,26,26,.3);transition:all .08s`;
+    swatch.title=c;
+    swatch.addEventListener('click',()=>{fgColor=c;updateColorUI()});
+    swatch.addEventListener('contextmenu',e=>{e.preventDefault();bgColor=c;bgSwatch.style.background=c});
+    swatch.addEventListener('mouseenter',()=>{swatch.style.transform='translate(-1px,-1px)';swatch.style.boxShadow='3px 3px 0 var(--border)'});
+    swatch.addEventListener('mouseleave',()=>{swatch.style.transform='';swatch.style.boxShadow='2px 2px 0 rgba(26,26,26,.3)'});
+    paletteGrid.appendChild(swatch);
+  });
+}
+
+// ── ANIMATION
+function playAnim(){
+  if(animTimer){clearInterval(animTimer);animTimer=null;document.getElementById('pe-play-btn').textContent='▶';return;}
+  let f=0;
+  const fps=parseInt(document.getElementById('pe-fps').value)||8;
+  document.getElementById('pe-play-btn').textContent='■';
+  animTimer=setInterval(()=>{
+    f=(f+1)%frames.length;
+    // Flash frame on canvas without switching
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,cw,ch);
+    frames[f].layers.filter(l=>l.visible).forEach(l=>ctx.drawImage(l.canvas,0,0));
+    // highlight active frame
+    const thumbs=framesList.querySelectorAll('.pe-frame-thumb');
+    thumbs.forEach((t,i)=>{t.style.borderColor=i===f?'var(--accent)':'#1A1A1A'});
+  },1000/fps);
+}
+
+// ── KEYBOARD SHORTCUTS
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(!document.getElementById('tool-pixeleditor').classList.contains('active'))return;
+  const map={b:'pencil',e:'eraser',f:'fill',i:'eyedropper',l:'line',r:'rect',c:'circle',g:'gradient',d:'dither',s:'spray',' ':'pan'};
+  if(map[e.key]&&!e.ctrlKey&&!e.metaKey){
+    activeTool=map[e.key];
+    document.querySelectorAll('[data-pe-tool]').forEach(b=>b.classList.toggle('active',b.dataset.peTool===activeTool));
+    document.getElementById('pe-gradient-opts').style.display=activeTool==='gradient'?'flex':'none';
+    container.style.cursor=activeTool==='pan'?'grab':'crosshair';
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
+  if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.shiftKey&&e.key==='z'))){e.preventDefault();redo();}
+  if(e.key==='+'||e.key==='='){ const rect=container.getBoundingClientRect();zoom=Math.min(64,zoom+1);panX=Math.round(rect.width/2-(rect.width/2-panX)*zoom/(zoom-1));panY=Math.round(rect.height/2-(rect.height/2-panY)*zoom/(zoom-1));updateTransform();drawGrid();document.getElementById('pe-zoom-val').textContent=zoom+'×';}
+  if(e.key==='-'){const rect=container.getBoundingClientRect();const nz=Math.max(1,zoom-1);panX=Math.round(rect.width/2-(rect.width/2-panX)*nz/zoom);panY=Math.round(rect.height/2-(rect.height/2-panY)*nz/zoom);zoom=nz;updateTransform();drawGrid();document.getElementById('pe-zoom-val').textContent=zoom+'×';}
+});
+
+// ── GIF EXPORT (simple, frame by frame PNG sequence)
+function exportGif(){
+  // Simple: download each frame as numbered PNG
+  frames.forEach((f,i)=>{
+    const c=document.createElement('canvas');c.width=cw;c.height=ch;
+    const ctx=c.getContext('2d');
+    f.layers.filter(l=>l.visible).forEach(l=>ctx.drawImage(l.canvas,0,0));
+    const scale=parseInt(document.getElementById('pe-export-scale').value)||8;
+    const out=document.createElement('canvas');out.width=cw*scale;out.height=ch*scale;
+    const octx=out.getContext('2d');octx.imageSmoothingEnabled=false;
+    octx.drawImage(c,0,0,cw*scale,ch*scale);
+    out.toBlob(b=>{
+      if(b) dlBlob(b,`frame_${String(i+1).padStart(3,'0')}.png`);
+    },'image/png');
+  });
+}
+
+// ── EXPORT PNG
+function exportPng(){
+  const scale=parseInt(document.getElementById('pe-export-scale').value)||8;
+  const fmt=document.getElementById('pe-export-fmt').value||'png';
+  const c=document.createElement('canvas');c.width=cw;c.height=ch;
+  const ctx=c.getContext('2d');
+  layers.filter(l=>l.visible).forEach(l=>ctx.drawImage(l.canvas,0,0));
+  const out=document.createElement('canvas');out.width=cw*scale;out.height=ch*scale;
+  const octx=out.getContext('2d');octx.imageSmoothingEnabled=false;
+  octx.drawImage(c,0,0,cw*scale,ch*scale);
+  const mime=fmt==='jpg'?'image/jpeg':'image/png';
+  out.toBlob(b=>{if(b)dlBlob(b,'pixel_art_'+cw+'x'+ch+'_x'+scale+'.'+fmt)},mime,0.95);
+}
+
+// ── BUTTON WIRING
+document.querySelectorAll('[data-pe-tool]').forEach(b=>b.addEventListener('click',()=>{
+  activeTool=b.dataset.peTool;
+  document.querySelectorAll('[data-pe-tool]').forEach(x=>x.classList.toggle('active',x.dataset.peTool===activeTool));
+  document.getElementById('pe-gradient-opts').style.display=activeTool==='gradient'?'flex':'none';
+  container.style.cursor=activeTool==='pan'?'grab':'crosshair';
+}));
+
+document.getElementById('pe-brush-size').addEventListener('input',function(){brushSize=+this.value;document.getElementById('pe-brush-val').textContent=this.value});
+document.getElementById('pe-opacity').addEventListener('input',function(){opacity=+this.value/100;document.getElementById('pe-opacity-val').textContent=this.value+'%'});
+
+document.querySelectorAll('[data-pe-sym]').forEach(b=>b.addEventListener('click',()=>{
+  if(b.dataset.peSym==='h'){symmetryH=!symmetryH;b.classList.toggle('active',symmetryH);}
+  else{symmetryV=!symmetryV;b.classList.toggle('active',symmetryV);}
+}));
+
+document.getElementById('pe-grad-mode').addEventListener('change',function(){gradMode=this.value});
+
+document.getElementById('pe-undo-btn').addEventListener('click',undo);
+document.getElementById('pe-redo-btn').addEventListener('click',redo);
+
+document.getElementById('pe-grid-btn').addEventListener('click',function(){
+  showGrid=!showGrid;this.classList.toggle('active',showGrid);drawGrid();
+});
+
+document.getElementById('pe-zoom-in-btn').addEventListener('click',()=>{
+  const rect=container.getBoundingClientRect();
+  zoom=Math.min(64,zoom+1);
+  panX=Math.round(rect.width/2-(rect.width/2-panX));panY=Math.round(rect.height/2-(rect.height/2-panY));
+  updateTransform();drawGrid();document.getElementById('pe-zoom-val').textContent=zoom+'×';
+});
+document.getElementById('pe-zoom-out-btn').addEventListener('click',()=>{
+  zoom=Math.max(1,zoom-1);updateTransform();drawGrid();document.getElementById('pe-zoom-val').textContent=zoom+'×';
+});
+document.getElementById('pe-fit-btn').addEventListener('click',fitCanvas);
+
+document.getElementById('pe-add-layer').addEventListener('click',()=>addLayer());
+document.getElementById('pe-add-frame').addEventListener('click',addFrame);
+document.getElementById('pe-play-btn').addEventListener('click',playAnim);
+
+document.getElementById('pe-fg-swatch').addEventListener('click',()=>document.getElementById('pe-fg-picker').click());
+document.getElementById('pe-fg-picker').addEventListener('input',function(){fgColor=this.value;updateColorUI()});
+document.getElementById('pe-swap-colors').addEventListener('click',()=>{[fgColor,bgColor]=[bgColor,fgColor];bgSwatch.style.background=bgColor;updateColorUI()});
+document.getElementById('pe-hex-apply').addEventListener('click',()=>{
+  const v=hexInput.value.trim();
+  if(/^#[0-9A-Fa-f]{6}$/.test(v)){fgColor=v;updateColorUI();}
+});
+hexInput.addEventListener('keydown',e=>{if(e.key==='Enter'){const v=hexInput.value.trim();if(/^#[0-9A-Fa-f]{6}$/.test(v)){fgColor=v;updateColorUI();}}});
+
+document.getElementById('pe-palette-preset').addEventListener('change',function(){
+  currentPalette=[...PALETTES[this.value]||PALETTES.pico8];
+  renderPalette();
+});
+document.getElementById('pe-add-color').addEventListener('click',()=>{
+  currentPalette.push(fgColor);renderPalette();
+});
+document.getElementById('pe-clear-palette').addEventListener('click',()=>{
+  currentPalette=[fgColor,bgColor];renderPalette();
+});
+
+document.getElementById('pe-export-btn').addEventListener('click',exportPng);
+document.getElementById('pe-export-gif-btn').addEventListener('click',exportGif);
+
+document.getElementById('pe-import-ref-btn').addEventListener('click',()=>document.getElementById('pe-ref-input').click());
+document.getElementById('pe-ref-input').addEventListener('change',async function(){
+  if(!this.files[0])return;
+  refImage=await loadImg(this.files[0]);
+  composite();this.value='';
+});
+
+// Size preset
+document.getElementById('pe-size-preset').addEventListener('change',function(){
+  const v=this.value;
+  if(v==='custom'){
+    document.getElementById('pe-cw').style.display='';
+    document.getElementById('pe-ch').style.display='';
+    document.getElementById('pe-custom-x').style.display='';
+    document.getElementById('pe-apply-size').style.display='';
+  } else {
+    document.getElementById('pe-cw').style.display='none';
+    document.getElementById('pe-ch').style.display='none';
+    document.getElementById('pe-custom-x').style.display='none';
+    document.getElementById('pe-apply-size').style.display='none';
+    const[w,h]=v.split('x').map(Number);
+    createCanvas(w,h);
+    // Clear layers
+    layers.forEach(l=>l.ctx.clearRect(0,0,w,h));
+    composite();fitCanvas();drawGrid();
+  }
+});
+document.getElementById('pe-apply-size').addEventListener('click',()=>{
+  const w=Math.max(1,Math.min(512,+document.getElementById('pe-cw').value||64));
+  const h=Math.max(1,Math.min(512,+document.getElementById('pe-ch').value||64));
+  createCanvas(w,h);composite();fitCanvas();drawGrid();
+});
+
+// ── IMPORT FROM 8-BIT TOOL (global bridge)
+window.sendToPixelEditor=function(imgData,w,h){
+  openTool('pixeleditor');
+  setTimeout(()=>{
+    cw=w;ch=h;
+    createCanvas(w,h);
+    layers[0].ctx.putImageData(imgData,0,0);
+    composite();fitCanvas();drawGrid();
+  },100);
+};
+
+// ── Init when tool becomes visible
+const observer=new MutationObserver(()=>{
+  if(document.getElementById('tool-pixeleditor').classList.contains('active')&&layers.length===0){
+    init();
+  }
+});
+observer.observe(document.getElementById('tool-pixeleditor'),{attributes:true,attributeFilter:['class']});
+
+// Also init if already active
+if(document.getElementById('tool-pixeleditor').classList.contains('active')) init();
+
 })();
 
 // ═══════════════════════════════════════
