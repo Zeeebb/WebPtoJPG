@@ -1353,7 +1353,7 @@ select option{background:var(--s2)}
     </div>
     <div class="divider"></div>
     <div class="sec">
-      <div class="sec-label">Colonnes de base</div>
+      <div class="sec-label">Colonnes</div>
       <div class="slide-count-row">
         <button class="sc-btn" id="con-cols-minus">−</button>
         <div class="sc-num" id="con-cols-num">3</div>
@@ -1361,19 +1361,18 @@ select option{background:var(--s2)}
       </div>
     </div>
     <div class="sec">
-      <div class="sec-label">Largeur d'image (px canvas)</div>
+      <div class="sec-label">Largeur colonne (px)</div>
       <div class="slide-count-row">
         <button class="sc-btn" id="con-cellw-minus">−</button>
         <div class="sc-num" id="con-cellw-num" style="font-size:14px">400</div>
         <button class="sc-btn" id="con-cellw-plus">+</button>
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:4px">Largeur d'une colonne en px</div>
     </div>
     <div class="sec">
       <div class="sec-label">Espacement (px)</div>
       <div class="range-row">
-        <input type="range" id="con-gap" min="0" max="60" value="6" step="2">
-        <span id="con-gap-val">6px</span>
+        <input type="range" id="con-gap" min="0" max="40" value="4" step="2">
+        <span id="con-gap-val">4px</span>
       </div>
     </div>
     <div class="sec">
@@ -1384,18 +1383,19 @@ select option{background:var(--s2)}
       </div>
     </div>
     <div class="sec">
-      <div class="sec-label">Recadrage</div>
-      <div class="btn-grid cols2">
-        <button class="opt-btn active" data-con-crop="minimal">Minimal (ratio conservé)</button>
-        <button class="opt-btn" data-con-crop="fill">Rempli (cover)</button>
+      <div class="sec-label">Alignement vertical colonnes</div>
+      <div class="btn-grid cols3">
+        <button class="opt-btn active" data-con-align="top">Haut</button>
+        <button class="opt-btn" data-con-align="center">Centre</button>
+        <button class="opt-btn" data-con-align="bottom">Bas</button>
       </div>
     </div>
     <div class="divider"></div>
-    <div style="font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.6">
-      Glisse les vignettes pour réordonner.<br>
-      Clique sur <strong style="color:var(--text2)">1×</strong> / <strong style="color:var(--text2)">2×</strong> pour changer la largeur d'une image.
+    <div style="font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.7">
+      <strong style="color:var(--text)">Layout masonry :</strong> chaque image garde son ratio exact.<br>
+      Dans la barre d'aperçu : glisse pour réordonner, clique <strong style="color:var(--text)">1×/2×</strong> pour doubler la largeur.
     </div>
-    <button class="btn-secondary" id="con-dl-btn" disabled style="width:100%;justify-content:center">
+    <button class="btn-primary" id="con-dl-btn" disabled>
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Télécharger PNG
     </button>
@@ -3109,22 +3109,24 @@ function makeOutCard(blobUrl, label, tag, dlFn) {
 })();
 
 // ═══════════════════════════════════════
-// TOOL: STRIP DE CONTACT — v2 live
+// TOOL: STRIP DE CONTACT — v3 masonry
 // ═══════════════════════════════════════
 (()=>{
-  let entries=[]; // [{file,img,span:1|2}]
-  let cols=3,cellW=400,gap=6,conBg='black',cropMode='minimal';
-  let resultBlob=null,renderTimer=null,dragIdx=null;
+  // ─ State
+  let entries=[]; // [{file, img, span:1|2}]
+  let cols=3, cellW=400, gap=4, conBg='black', colAlign='top';
+  let resultBlob=null, renderTimer=null, dragIdx=null;
 
-  // Controls wiring
+  // ─ Controls
   document.getElementById('con-cols-minus').addEventListener('click',()=>{if(cols>1){cols--;document.getElementById('con-cols-num').textContent=cols;scheduleRender()}});
   document.getElementById('con-cols-plus').addEventListener('click',()=>{if(cols<8){cols++;document.getElementById('con-cols-num').textContent=cols;scheduleRender()}});
-  document.getElementById('con-cellw-minus').addEventListener('click',()=>{if(cellW>100){cellW=Math.max(100,cellW-50);document.getElementById('con-cellw-num').textContent=cellW;scheduleRender()}});
+  document.getElementById('con-cellw-minus').addEventListener('click',()=>{if(cellW>80){cellW=Math.max(80,cellW-50);document.getElementById('con-cellw-num').textContent=cellW;scheduleRender()}});
   document.getElementById('con-cellw-plus').addEventListener('click',()=>{cellW=Math.min(1200,cellW+50);document.getElementById('con-cellw-num').textContent=cellW;scheduleRender()});
   document.getElementById('con-gap').addEventListener('input',function(){gap=parseInt(this.value)||0;document.getElementById('con-gap-val').textContent=gap+'px';scheduleRender()});
   document.querySelectorAll('[data-con-bg]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-con-bg]').forEach(x=>x.classList.remove('active'));b.classList.add('active');conBg=b.dataset.conBg;scheduleRender()}));
-  document.querySelectorAll('[data-con-crop]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-con-crop]').forEach(x=>x.classList.remove('active'));b.classList.add('active');cropMode=b.dataset.conCrop;scheduleRender()}));
+  document.querySelectorAll('[data-con-align]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-con-align]').forEach(x=>x.classList.remove('active'));b.classList.add('active');colAlign=b.dataset.conAlign;scheduleRender()}));
 
+  // ─ Drop zone
   setupDZ('con-dz','con-input','image/*',true,async(files)=>{
     for(const f of files){
       if(!entries.find(x=>x.file.name===f.name&&x.file.size===f.size)){
@@ -3144,45 +3146,53 @@ function makeOutCard(blobUrl, label, tag, dlFn) {
     document.getElementById('con-dl-btn').disabled=!has;
   }
 
+  // ─ Thumb bar (drag + span toggle)
   function renderThumbBar(){
     const bar=document.getElementById('con-thumb-bar');
     bar.innerHTML='';
     entries.forEach((e,i)=>{
       const wrap=document.createElement('div');
-      wrap.style.cssText='position:relative;flex-shrink:0;cursor:grab';
+      wrap.style.cssText='position:relative;flex-shrink:0;cursor:grab;user-select:none';
       wrap.draggable=true;
-      wrap.addEventListener('dragstart',()=>dragIdx=i);
-      wrap.addEventListener('dragover',ev=>{ev.preventDefault();wrap.style.outline='2px solid var(--accent)'});
-      wrap.addEventListener('dragleave',()=>wrap.style.outline='');
+      wrap.addEventListener('dragstart',ev=>{dragIdx=i;wrap.style.opacity='.5'});
+      wrap.addEventListener('dragend',()=>{wrap.style.opacity='1';dragIdx=null});
+      wrap.addEventListener('dragover',ev=>{ev.preventDefault();wrap.style.outline='2.5px solid #B8E62E'});
+      wrap.addEventListener('dragleave',()=>wrap.style.outline='none');
       wrap.addEventListener('drop',ev=>{
-        ev.preventDefault();wrap.style.outline='';
+        ev.preventDefault();wrap.style.outline='none';
         if(dragIdx===null||dragIdx===i)return;
         const moved=entries.splice(dragIdx,1)[0];
         entries.splice(i,0,moved);
         dragIdx=null;renderThumbBar();scheduleRender();
       });
-      wrap.addEventListener('dragend',()=>{wrap.style.outline='';dragIdx=null});
 
       const u=URL.createObjectURL(e.file);
       const img=document.createElement('img');
-      img.src=u;img.alt='';img.onload=()=>URL.revokeObjectURL(u);
-      img.style.cssText='width:60px;height:40px;object-fit:cover;display:block;border-radius:4px;border:2px solid transparent;pointer-events:none';
+      img.src=u;img.alt='';
+      img.onload=()=>URL.revokeObjectURL(u);
+      img.style.cssText=`width:${e.span===2?112:56}px;height:40px;object-fit:cover;display:block;border-radius:3px;border:2px solid ${e.span===2?'#B8E62E':'#1A1A1A'};pointer-events:none;transition:all .15s`;
 
+      // Span toggle
       const spanBtn=document.createElement('button');
-      spanBtn.style.cssText='position:absolute;bottom:2px;right:2px;font-size:9px;font-weight:700;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:3px;padding:1px 5px;cursor:pointer';
+      spanBtn.style.cssText='position:absolute;bottom:2px;left:2px;font-size:9px;font-weight:800;background:#1A1A1A;color:#B8E62E;border:none;border-radius:2px;padding:1px 5px;cursor:pointer;font-family:Space Mono,monospace;line-height:1.4';
       spanBtn.textContent=e.span+'×';
-      spanBtn.title='Cliquer pour changer la largeur';
       spanBtn.addEventListener('click',ev=>{
         ev.stopPropagation();
         e.span=e.span===1?2:1;
         spanBtn.textContent=e.span+'×';
+        img.style.width=(e.span===2?112:56)+'px';
+        img.style.borderColor=e.span===2?'#B8E62E':'#1A1A1A';
         scheduleRender();
       });
 
+      // Remove
       const rmBtn=document.createElement('button');
-      rmBtn.style.cssText='position:absolute;top:2px;right:2px;width:14px;height:14px;font-size:10px;background:rgba(200,60,60,.8);color:#fff;border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1';
+      rmBtn.style.cssText='position:absolute;top:2px;right:2px;width:15px;height:15px;font-size:11px;background:#FF6B57;color:#fff;border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;padding:0';
       rmBtn.textContent='×';
-      rmBtn.addEventListener('click',ev=>{ev.stopPropagation();entries.splice(i,1);renderThumbBar();updateConUI();scheduleRender()});
+      rmBtn.addEventListener('click',ev=>{
+        ev.stopPropagation();
+        entries.splice(i,1);renderThumbBar();updateConUI();scheduleRender();
+      });
 
       wrap.appendChild(img);wrap.appendChild(spanBtn);wrap.appendChild(rmBtn);
       bar.appendChild(wrap);
@@ -3191,85 +3201,85 @@ function makeOutCard(blobUrl, label, tag, dlFn) {
 
   function scheduleRender(){
     clearTimeout(renderTimer);
-    renderTimer=setTimeout(doRender,80);
+    renderTimer=setTimeout(doRender,60);
   }
 
+  // ─ MASONRY LAYOUT ENGINE ─
+  // True multi-column masonry: images keep exact ratio, placed in shortest column(s)
+  // Supports span=2 (occupies 2 adjacent columns of equal shortest height)
   async function doRender(){
     if(!entries.length) return;
     const bg=conBg==='white'?'#ffffff':'#000000';
-    const totalCols=cols;
-
-    // Layout: grid where each entry occupies span columns
-    // Build rows greedily
-    const rows=[];
-    let curRow=[];
-    let curSpan=0;
-    for(const e of entries){
-      const span=Math.min(e.span,totalCols);
-      if(curSpan+span>totalCols&&curRow.length){
-        rows.push(curRow);curRow=[];curSpan=0;
-      }
-      curRow.push({...e,span});
-      curSpan+=span;
-      if(curSpan>=totalCols){rows.push(curRow);curRow=[];curSpan=0;}
-    }
-    if(curRow.length) rows.push(curRow);
-
-    // Compute canvas dimensions
     const totalW=cols*cellW+gap*(cols-1);
-    // For each row, compute height from images
-    const rowHeights=rows.map(row=>{
-      // Height = max of (img natural H * (span*cellW / img natural W))
-      return Math.round(row.reduce((maxH,e)=>{
-        const colW=e.span*cellW+(e.span-1)*gap;
-        const h=e.img.naturalHeight*(colW/e.img.naturalWidth);
-        return Math.max(maxH,h);
-      },0));
-    });
-    const totalH=rowHeights.reduce((a,h)=>a+h,0)+gap*(rows.length-1);
+
+    // Column height tracker
+    const colHeights=new Array(cols).fill(0);
+
+    // Layout items: compute x,y,w,h for each
+    const placed=[];
+
+    for(const e of entries){
+      const iw=e.img.naturalWidth,ih=e.img.naturalHeight;
+      const span=Math.min(e.span,cols);
+      const drawW=span*cellW+(span-1)*gap;
+      const drawH=Math.round(ih*(drawW/iw)); // exact ratio, no crop
+
+      if(span===1){
+        // Find shortest column
+        let shortestCol=0;
+        for(let c=1;c<cols;c++) if(colHeights[c]<colHeights[shortestCol]) shortestCol=c;
+        const x=shortestCol*( cellW+gap);
+        const y=colHeights[shortestCol]+(colHeights[shortestCol]>0?gap:0);
+        placed.push({img:e.img,x,y,w:drawW,h:drawH,iw,ih});
+        colHeights[shortestCol]=y+drawH;
+
+      } else {
+        // span=2: find 2 adjacent columns with minimum combined max height
+        // Try all adjacent pairs, pick the one with smallest max
+        let bestPair=0,bestMaxH=Infinity;
+        for(let c=0;c<=cols-2;c++){
+          const maxH=Math.max(colHeights[c],colHeights[c+1]);
+          if(maxH<bestMaxH){bestMaxH=maxH;bestPair=c;}
+        }
+        const startCol=bestPair;
+        const x=startCol*(cellW+gap);
+        // y = max of the two columns + gap
+        const baseH=Math.max(colHeights[startCol],colHeights[startCol+1]);
+        const y=baseH+(baseH>0?gap:0);
+        placed.push({img:e.img,x,y,w:drawW,h:drawH,iw,ih});
+        // Update both columns
+        colHeights[startCol]=y+drawH;
+        colHeights[startCol+1]=y+drawH;
+      }
+    }
+
+    // Total canvas height = tallest column
+    const totalH=Math.max(...colHeights);
 
     const canvas=document.createElement('canvas');
     canvas.width=totalW;canvas.height=totalH;
     const ctx=canvas.getContext('2d');
     ctx.fillStyle=bg;ctx.fillRect(0,0,totalW,totalH);
 
-    let y=0;
-    rows.forEach((row,ri)=>{
-      const rowH=rowHeights[ri];
-      let x=0;
-      row.forEach(e=>{
-        const colW=e.span*cellW+(e.span-1)*gap;
-        const iw=e.img.naturalWidth,ih=e.img.naturalHeight;
-        if(cropMode==='fill'){
-          // cover: fill colW×rowH
-          const srcAR=iw/ih,dstAR=colW/rowH;
-          let sx,sy,sw,sh;
-          if(srcAR>dstAR){sh=ih;sw=sh*dstAR;sx=(iw-sw)/2;sy=0;}
-          else{sw=iw;sh=sw/dstAR;sx=0;sy=(ih-sh)/2;}
-          ctx.drawImage(e.img,sx,sy,sw,sh,x,y,colW,rowH);
-        } else {
-          // contain with minimal crop: fit image in colW×rowH, letterbox with bg
-          const scale=Math.min(colW/iw,rowH/ih);
-          const dw=iw*scale,dh=ih*scale;
-          const dx=x+(colW-dw)/2,dy=y+(rowH-dh)/2;
-          ctx.drawImage(e.img,0,0,iw,ih,dx,dy,dw,dh);
-        }
-        x+=colW+gap;
-      });
-      y+=rowH+gap;
-    });
+    // Draw each image at its exact computed position, no crop (contain with bg)
+    for(const p of placed){
+      // Image already sized to exact ratio (drawW = span*cellW, drawH = ratio-exact)
+      // Just draw it: it fits perfectly without crop
+      ctx.drawImage(p.img,0,0,p.iw,p.ih,p.x,p.y,p.w,p.h);
+    }
 
-    // Show in preview canvas
+    // Preview
     const previewCanvas=document.getElementById('con-canvas');
     previewCanvas.width=totalW;previewCanvas.height=totalH;
     previewCanvas.getContext('2d').drawImage(canvas,0,0);
 
     resultBlob=await canvasToBlob(canvas,'image/png');
-    document.getElementById('con-out-info').textContent=entries.length+' images · '+totalW+'×'+totalH+' px';
+    document.getElementById('con-out-info').textContent=
+      entries.length+' images · '+totalW+'×'+totalH+' px · masonry '+cols+' col.';
   }
 
   document.getElementById('con-dl-btn').addEventListener('click',()=>{if(resultBlob)dlBlob(resultBlob,'strip_contact.png')});
-  window.conSort=()=>alert('Réorganise les vignettes dans la barre du haut par drag & drop.');
+  window.conSort=()=>{};
 })();
 
 // ═══════════════════════════════════════
